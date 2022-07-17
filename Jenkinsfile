@@ -1,0 +1,39 @@
+node {
+    def mvnHome
+    stage('Preparation') { // for display purposes
+        // Get some code from a GitHub repository
+        git 'https://github.com/ykinnosoft/labs.git'
+        // Get the Maven tool.
+        // ** NOTE: This 'M3' Maven tool must be configured
+        // **       in the global configuration.
+        mvnHome = tool 'maven3'
+    }
+    dir('spring-boot-jenkins-pipeline-demo') {
+    stage('Build') {
+        // Run the maven build
+        withEnv(["MVN_HOME=$mvnHome"]) {
+            if (isUnix()) {
+                sh '"$MVN_HOME/bin/mvn" -Dmaven.test.failure.ignore clean package'
+            } else {
+                bat(/"%MVN_HOME%\bin\mvn" -Dmaven.test.failure.ignore clean package/)
+            }
+        }
+    }
+    
+    stage('Results') {
+        junit '**/target/surefire-reports/TEST-*.xml'
+        archiveArtifacts 'target/*.jar'
+    }
+    
+    stage("Deploy-and-Staging") {
+
+                withEnv(['JENKINS_NODE_COOKIE=dontkill']) {
+                    if (isUnix()) {
+                        sh 'nohup ./mvnw spring-boot:run -Dserver.port=9898 &'
+                    } else {
+                        bat 'start mvnw.cmd spring-boot:run -Dserver.port=9898'
+                    }
+                }
+            }
+    }
+}
