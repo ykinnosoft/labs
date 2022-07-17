@@ -11,10 +11,10 @@ public class DemoRestController {
 	public String greeting(@RequestParam(required = false) String name) {
 		
 		if( null != name && !name.isEmpty())
-			return "Namaskar " + name;
+			return "Namaste " + name;
 		
 		else
-			return "Namaskar..";
+			return "Namaste..";
 	}
 
 }
